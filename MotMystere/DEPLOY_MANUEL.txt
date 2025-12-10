@@ -1,0 +1,111 @@
+========================================
+TUSMO CESI - DEPLOIEMENT MANUEL
+========================================
+
+ETAPE 1: INSTALLER GIT (si necessaire)
+---------------------------------------
+1. Telechargez: https://git-scm.com/download/win
+2. Installez avec les options par defaut
+3. Redemarrez PowerShell
+
+
+ETAPE 2: CREER UN REPOSITORY GITHUB
+------------------------------------
+1. Allez sur: https://github.com
+2. Cliquez sur "New repository"
+3. Nom: tusmo-cesi
+4. Public ou Private (au choix)
+5. NE COCHEZ RIEN (pas de README, pas de .gitignore)
+6. Cliquez "Create repository"
+7. Copiez l'URL du repository (exemple: https://github.com/VOTRE_USERNAME/tusmo-cesi.git)
+
+
+ETAPE 3: POUSSER LE CODE SUR GITHUB
+------------------------------------
+Ouvrez PowerShell dans le dossier du projet et executez:
+
+cd C:\Users\Dardq\CascadeProjects\MotMystere
+
+git init
+
+git add .
+
+git commit -m "Deploy TUSMO CESI v2.0"
+
+git remote add origin https://github.com/VOTRE_USERNAME/tusmo-cesi.git
+
+git branch -M main
+
+git push -u origin main
+
+
+ETAPE 4: DEPLOYER SUR RENDER.COM
+---------------------------------
+1. Allez sur: https://render.com
+2. Creez un compte (gratuit)
+3. Cliquez "New +" en haut a droite
+4. Selectionnez "Web Service"
+5. Cliquez "Connect account" pour GitHub
+6. Autorisez Render a acceder a vos repositories
+7. Selectionnez le repository "tusmo-cesi"
+8. Configuration:
+   - Name: tusmo-cesi
+   - Environment: Python 3
+   - Build Command: pip install -r requirements.txt
+   - Start Command: gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+   - Plan: Free
+9. Cliquez "Create Web Service"
+10. Attendez 5-10 minutes pour le deploiement
+
+
+ETAPE 5: VOTRE SITE EST EN LIGNE!
+----------------------------------
+Render vous donnera une URL comme:
+https://tusmo-cesi.onrender.com
+
+Testez toutes les fonctionnalites:
+- Mot du jour
+- Mode infini
+- Statistiques (bouton en haut)
+- Parametres (mode difficile, sons)
+- Animations et confettis
+
+
+CONFIGURATION DES DOMAINES PERSONNALISES (optionnel)
+-----------------------------------------------------
+Si vous avez tusmo.online et tusmo.site:
+
+1. Dans Render, allez dans Settings > Custom Domains
+2. Ajoutez vos domaines
+3. Configurez les DNS chez votre registrar:
+   Type: CNAME
+   Name: @
+   Value: tusmo-cesi.onrender.com
+
+
+DEPANNAGE
+---------
+Si Git n'est pas reconnu:
+- Redemarrez PowerShell apres l'installation
+- Ou utilisez Git Bash au lieu de PowerShell
+
+Si le push echoue:
+- Verifiez que vous avez bien copie l'URL du repository
+- Verifiez vos identifiants GitHub
+
+Si le build echoue sur Render:
+- Verifiez les logs dans Render
+- Assurez-vous que requirements.txt est present
+- Verifiez que app.py est a la racine
+
+
+SUPPORT
+-------
+Consultez les fichiers:
+- DEPLOY_NOW.md (guide complet)
+- DEPLOYMENT_READY.md (checklist)
+
+
+========================================
+Bon deploiement! 🚀
+========================================
