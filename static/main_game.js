@@ -86,6 +86,19 @@ function getHintLetters(word) {
     return 0;
 }
 
+// Check if player has already played daily mode today
+function hasPlayedDailyToday() {
+    const today = getDailySeed();
+    const lastPlayed = localStorage.getItem('lastDailyPlayed');
+    return lastPlayed === today;
+}
+
+// Mark daily mode as played
+function markDailyAsPlayed() {
+    const today = getDailySeed();
+    localStorage.setItem('lastDailyPlayed', today);
+}
+
 // Get word with length preference (favor shorter words)
 function getWeightedWord(seed) {
     // Separate words by length
@@ -151,6 +164,12 @@ function showScreen(screenId) {
 menuCards.forEach(card => {
     card.addEventListener("click", function() {
         const mode = this.getAttribute("data-mode");
+        
+        // Check if daily mode already played today
+        if (mode === "daily" && hasPlayedDailyToday()) {
+            toastr.warning("Vous avez déjà joué le mot du jour! Revenez demain à midi.");
+            return;
+        }
         
         if (mode === "1v1") {
             showScreen("setup1v1Screen");
@@ -505,6 +524,11 @@ function checkGuess() {
             hardMode = localStorage.getItem('hard_mode') === 'true';
             statsManager.recordWin(attempts, timeElapsed, currentMode, hardMode);
             
+            // Mark daily mode as played
+            if (currentMode === "daily") {
+                markDailyAsPlayed();
+            }
+            
             // Show streak badge if applicable
             const stats = statsManager.getStats();
             if (stats.currentStreak > 1 && stats.currentStreak % 5 === 0) {
@@ -575,6 +599,11 @@ function checkGuess() {
             
             // Record loss in stats
             statsManager.recordLoss(currentMode);
+            
+            // Mark daily mode as played
+            if (currentMode === "daily") {
+                markDailyAsPlayed();
+            }
             
             setTimeout(() => {
                 showWordPopup(currentWord.toUpperCase());
