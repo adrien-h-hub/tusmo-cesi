@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUSMO CESI - Jeu de Mots</title>
+    <link rel="stylesheet" href="static/main_style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <h1>🎯 TUSMO CESI</h1>
+        </div>
+        <div class="header-buttons">
+            <button class="icon-btn" id="btnStats" title="Statistiques">📊</button>
+            <button class="icon-btn" id="btnSettings" title="Paramètres">⚙️</button>
+            <button class="icon-btn" id="btnSound" title="Son">🔊</button>
+        </div>
+        <div class="ad-space">
+            <p>📢 Espace Publicitaire</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Menu Screen -->
+        <div class="screen active" id="menuScreen">
+            <h2>Choisissez un Mode de Jeu</h2>
+            <div class="menu-grid">
+                <div class="menu-card" data-mode="daily">
+                    <div class="card-icon">📅</div>
+                    <h3>Mot du Jour</h3>
+                    <p>Un nouveau mot chaque jour à midi</p>
+                    <span class="difficulty">5-10 lettres</span>
+                </div>
+                <div class="menu-card" data-mode="infinite">
+                    <div class="card-icon">♾️</div>
+                    <h3>Mode Infini</h3>
+                    <p>Jouez sans limite!</p>
+                    <span class="difficulty">5-10 lettres</span>
+                </div>
+                <div class="menu-card" data-mode="suite">
+                    <div class="card-icon">🎯</div>
+                    <h3>Suite de 4</h3>
+                    <p>4 mots plus faciles</p>
+                    <span class="difficulty">Change à midi</span>
+                </div>
+                <div class="menu-card" data-mode="1v1">
+                    <div class="card-icon">⚔️</div>
+                    <h3>1v1</h3>
+                    <p>Affrontez un ami avec un code!</p>
+                    <span class="difficulty">Multijoueur</span>
+                </div>
+                <div class="menu-card" data-mode="party">
+                    <div class="card-icon">🎉</div>
+                    <h3>Mode Partie</h3>
+                    <p>5 mots - Le plus rapide gagne!</p>
+                    <span class="difficulty">Multijoueur</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen" id="gameScreen">
+            <div class="game-header">
+                <button class="btn-back" id="btnBack">← Retour</button>
+                <h2 id="gameTitle">Mot du Jour</h2>
+                <div class="game-stats">
+                    <span id="gameProgress">Mot 1/1</span>
+                    <span id="gameTimer">00:00</span>
+                </div>
+            </div>
+            
+            <div class="game-container">
+                <div id="game-board"></div>
+                
+                <div id="keyboard-cont">
+                    <div class="first-row">
+                        <button class="keyboard-button">a</button>
+                        <button class="keyboard-button">z</button>
+                        <button class="keyboard-button">e</button>
+                        <button class="keyboard-button">r</button>
+                        <button class="keyboard-button">t</button>
+                        <button class="keyboard-button">y</button>
+                        <button class="keyboard-button">u</button>
+                        <button class="keyboard-button">i</button>
+                        <button class="keyboard-button">o</button>
+                        <button class="keyboard-button">p</button>
+                    </div>
+                    <div class="second-row">
+                        <button class="keyboard-button">q</button>
+                        <button class="keyboard-button">s</button>
+                        <button class="keyboard-button">d</button>
+                        <button class="keyboard-button">f</button>
+                        <button class="keyboard-button">g</button>
+                        <button class="keyboard-button">h</button>
+                        <button class="keyboard-button">j</button>
+                        <button class="keyboard-button">k</button>
+                        <button class="keyboard-button">l</button>
+                    </div>
+                    <div class="third-row">
+                        <button class="keyboard-button">Del</button>
+                        <button class="keyboard-button">w</button>
+                        <button class="keyboard-button">x</button>
+                        <button class="keyboard-button">c</button>
+                        <button class="keyboard-button">v</button>
+                        <button class="keyboard-button">b</button>
+                        <button class="keyboard-button">n</button>
+                        <button class="keyboard-button">m</button>
+                        <button class="keyboard-button">Enter</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ad Space in Game -->
+            <div class="ad-space-game">
+                <p>📢 Publicité</p>
+            </div>
+        </div>
+
+        <!-- 1v1 Setup Screen -->
+        <div class="screen" id="setup1v1Screen">
+            <div class="setup-container">
+                <h2>Mode 1v1</h2>
+                <div class="setup-options">
+                    <button class="btn-setup" id="btnCreateRoom">
+                        <span class="icon">➕</span>
+                        <span>Créer une Partie</span>
+                        <small>Invitez un ami avec un code</small>
+                    </button>
+                    <button class="btn-setup" id="btnJoinRoom">
+                        <span class="icon">🔗</span>
+                        <span>Rejoindre une Partie</span>
+                        <small>Entrez le code de votre ami</small>
+                    </button>
+                    <button class="btn-setup" id="btnRandomMatch">
+                        <span class="icon">🎲</span>
+                        <span>Match Aléatoire</span>
+                        <small>Affrontez un joueur au hasard</small>
+                    </button>
+                </div>
+                <button class="btn-back" id="btnBack1v1">← Retour au Menu</button>
+            </div>
+        </div>
+
+        <!-- Party Setup Screen -->
+        <div class="screen" id="setupPartyScreen">
+            <div class="setup-container">
+                <h2>Mode Partie</h2>
+                <div class="party-setup">
+                    <div class="input-group">
+                        <label>Votre Nom:</label>
+                        <input type="text" id="playerName" placeholder="Entrez votre nom" maxlength="20">
+                    </div>
+                    <div class="input-group">
+                        <label>Nombre de Mots:</label>
+                        <input type="number" id="wordCount" value="10" min="5" max="20">
+                    </div>
+                    <button class="btn-primary" id="btnCreateParty">Créer la Partie</button>
+                    <div id="partyCode" class="party-code hidden">
+                        <p>Code de la Partie:</p>
+                        <h3 id="codeDisplay"></h3>
+                        <button class="btn-copy" id="btnCopyCode">Copier le Code</button>
+                    </div>
+                    <div class="divider">OU</div>
+                    <div class="input-group">
+                        <label>Rejoindre avec un Code:</label>
+                        <input type="text" id="joinCode" placeholder="Entrez le code" maxlength="6">
+                    </div>
+                    <button class="btn-secondary" id="btnJoinParty">Rejoindre</button>
+                </div>
+                <button class="btn-back" id="btnBackParty">← Retour au Menu</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="static/multiplayer.js"></script>
+    <script src="static/main_game.js" type="module"></script>
+</body>
+</html>

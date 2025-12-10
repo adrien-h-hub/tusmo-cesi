@@ -1,0 +1,40 @@
+MISE A JOUR DU SITE
+===================
+
+Les modes multijoueurs ont ete desactives temporairement.
+
+ETAPE 1: Mettre a jour GitHub
+------------------------------
+cd C:\Users\Dardq\CascadeProjects\MotMystere
+
+git add .
+
+git commit -m "Disable multiplayer modes temporarily"
+
+git push origin main
+
+
+ETAPE 2: Render va automatiquement redéployer
+----------------------------------------------
+Attendez 2-3 minutes que Render detecte les changements et redeploie.
+
+
+MODES FONCTIONNELS:
+-------------------
+✅ Mot du Jour
+✅ Mode Infini  
+✅ Suite de 4
+✅ Statistiques
+✅ Mode Difficile
+✅ Animations
+✅ Sons
+
+MODES DESACTIVES (Bientot disponible):
+---------------------------------------
+⏳ 1v1
+⏳ Mode Partie
+
+Pour reactiver les modes multijoueurs, il faudra:
+1. Configurer Socket.IO correctement
+2. Mettre en place un serveur WebSocket
+3. Gerer les rooms et les matchmaking

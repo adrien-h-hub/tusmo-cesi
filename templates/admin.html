@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TUSMO CESI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>🎯 TUSMO CESI</h1>
+                <p class="admin-badge">Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="#users" class="nav-item" data-section="users">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Utilisateurs</span>
+                </a>
+                <a href="#games" class="nav-item" data-section="games">
+                    <span class="nav-icon">🎮</span>
+                    <span class="nav-text">Parties</span>
+                </a>
+                <a href="#words" class="nav-item" data-section="words">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">Mots</span>
+                </a>
+                <a href="#leaderboard" class="nav-item" data-section="leaderboard">
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-text">Classement</span>
+                </a>
+                <a href="#analytics" class="nav-item" data-section="analytics">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-text">Analytiques</span>
+                </a>
+                <a href="#settings" class="nav-item" data-section="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Paramètres</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/game" class="btn-secondary">
+                    <span>🎮</span>
+                    <span>Retour au Jeu</span>
+                </a>
+                <button class="btn-logout" id="logout-btn">
+                    <span>🚪</span>
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h2 id="section-title">Dashboard</h2>
+                    <p class="header-subtitle">Vue d'ensemble du système</p>
+                </div>
+                <div class="header-right">
+                    <button class="btn-icon" id="refresh-btn" title="Actualiser">
+                        <span>🔄</span>
+                    </button>
+                    <button class="btn-icon" id="notifications-btn" title="Notifications">
+                        <span>🔔</span>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="admin-profile">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff" alt="Admin">
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Utilisateurs Totaux</p>
+                            <h3 class="stat-value" id="total-users">1,234</h3>
+                            <p class="stat-change positive">+12% ce mois</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🎮</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Parties Jouées</p>
+                            <h3 class="stat-value" id="total-games">45,678</h3>
+                            <p class="stat-change positive">+8% ce mois</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Utilisateurs Actifs</p>
+                            <h3 class="stat-value" id="active-users">342</h3>
+                            <p class="stat-change positive">En ligne maintenant</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-content">
+                            <p class="stat-label">Score Moyen</p>
+                            <h3 class="stat-value" id="avg-score">856</h3>
+                            <p class="stat-change neutral">Stable</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Parties par Mode</h3>
+                            <select class="chart-filter">
+                                <option>Aujourd'hui</option>
+                                <option>Cette Semaine</option>
+                                <option>Ce Mois</option>
+                            </select>
+                        </div>
+                        <div class="chart-content">
+                            <canvas id="games-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Utilisateurs Actifs</h3>
+                            <select class="chart-filter">
+                                <option>7 Derniers Jours</option>
+                                <option>30 Derniers Jours</option>
+                            </select>
+                        </div>
+                        <div class="chart-content">
+                            <canvas id="users-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="activity-card">
+                    <div class="card-header">
+                        <h3>Activité Récente</h3>
+                        <button class="btn-text">Voir Tout</button>
+                    </div>
+                    <div class="activity-list" id="recent-activity">
+                        <!-- Activity items will be populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users-section" class="content-section">
+                <div class="section-toolbar">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" placeholder="Rechercher un utilisateur..." id="user-search">
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn-primary" id="add-user-btn">
+                            <span>➕</span>
+                            <span>Ajouter Utilisateur</span>
+                        </button>
+                        <button class="btn-secondary" id="export-users-btn">
+                            <span>📥</span>
+                            <span>Exporter</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Parties</th>
+                                <th>Score Total</th>
+                                <th>Inscription</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Users will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination">
+                    <button class="pagination-btn">Précédent</button>
+                    <div class="pagination-numbers">
+                        <button class="pagination-number active">1</button>
+                        <button class="pagination-number">2</button>
+                        <button class="pagination-number">3</button>
+                        <span>...</span>
+                        <button class="pagination-number">10</button>
+                    </div>
+                    <button class="pagination-btn">Suivant</button>
+                </div>
+            </section>
+
+            <!-- Games Section -->
+            <section id="games-section" class="content-section">
+                <div class="section-toolbar">
+                    <div class="filter-group">
+                        <select class="filter-select">
+                            <option>Tous les Modes</option>
+                            <option>Daily Challenge</option>
+                            <option>Infinite</option>
+                            <option>1v1</option>
+                            <option>Party Mode</option>
+                        </select>
+                        <select class="filter-select">
+                            <option>Toutes les Dates</option>
+                            <option>Aujourd'hui</option>
+                            <option>Cette Semaine</option>
+                            <option>Ce Mois</option>
+                        </select>
+                    </div>
+                    <button class="btn-secondary" id="export-games-btn">
+                        <span>📥</span>
+                        <span>Exporter</span>
+                    </button>
+                </div>
+
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID Partie</th>
+                                <th>Mode</th>
+                                <th>Joueur(s)</th>
+                                <th>Mot</th>
+                                <th>Score</th>
+                                <th>Essais</th>
+                                <th>Temps</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="games-table-body">
+                            <!-- Games will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Words Section -->
+            <section id="words-section" class="content-section">
+                <div class="section-toolbar">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" placeholder="Rechercher un mot..." id="word-search">
+                    </div>
+                    <div class="toolbar-actions">
+                        <button class="btn-primary" id="add-word-btn">
+                            <span>➕</span>
+                            <span>Ajouter Mot</span>
+                        </button>
+                        <button class="btn-secondary" id="import-words-btn">
+                            <span>📤</span>
+                            <span>Importer</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="words-stats">
+                    <div class="word-stat">
+                        <h4>Total Mots</h4>
+                        <p class="word-stat-value">800+</p>
+                    </div>
+                    <div class="word-stat">
+                        <h4>Mot du Jour</h4>
+                        <p class="word-stat-value" id="daily-word">MAISON</p>
+                    </div>
+                    <div class="word-stat">
+                        <h4>Taux de Réussite</h4>
+                        <p class="word-stat-value">67%</p>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Mot</th>
+                                <th>Longueur</th>
+                                <th>Utilisé</th>
+                                <th>Taux Réussite</th>
+                                <th>Difficulté</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="words-table-body">
+                            <!-- Words will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Leaderboard Section -->
+            <section id="leaderboard-section" class="content-section">
+                <div class="leaderboard-tabs">
+                    <button class="tab-btn active" data-tab="daily">Quotidien</button>
+                    <button class="tab-btn" data-tab="weekly">Hebdomadaire</button>
+                    <button class="tab-btn" data-tab="monthly">Mensuel</button>
+                    <button class="tab-btn" data-tab="alltime">Tout Temps</button>
+                </div>
+
+                <div class="leaderboard-content">
+                    <div class="podium">
+                        <div class="podium-item second">
+                            <div class="podium-avatar">🥈</div>
+                            <h4>Player2</h4>
+                            <p class="podium-score">8,450</p>
+                        </div>
+                        <div class="podium-item first">
+                            <div class="podium-avatar">🥇</div>
+                            <h4>Champion</h4>
+                            <p class="podium-score">9,820</p>
+                        </div>
+                        <div class="podium-item third">
+                            <div class="podium-avatar">🥉</div>
+                            <h4>Player3</h4>
+                            <p class="podium-score">7,230</p>
+                        </div>
+                    </div>
+
+                    <div class="table-card">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Joueur</th>
+                                    <th>Parties</th>
+                                    <th>Victoires</th>
+                                    <th>Score Total</th>
+                                    <th>Moyenne</th>
+                                    <th>Série</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-table-body">
+                                <!-- Leaderboard will be populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics-section" class="content-section">
+                <div class="analytics-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <h3>Tendances de Jeu</h3>
+                            <div class="chart-controls">
+                                <button class="chart-btn active">Jour</button>
+                                <button class="chart-btn">Semaine</button>
+                                <button class="chart-btn">Mois</button>
+                            </div>
+                        </div>
+                        <div class="chart-content">
+                            <canvas id="trends-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Modes Populaires</h3>
+                        </div>
+                        <div class="chart-content">
+                            <canvas id="modes-pie-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Heures de Pointe</h3>
+                        </div>
+                        <div class="chart-content">
+                            <canvas id="hours-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="content-section">
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <h3>Paramètres Généraux</h3>
+                        <div class="setting-item">
+                            <label>Nom du Jeu</label>
+                            <input type="text" value="TUSMO CESI" class="setting-input">
+                        </div>
+                        <div class="setting-item">
+                            <label>Maintenance Mode</label>
+                            <label class="toggle">
+                                <input type="checkbox" id="maintenance-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>Inscriptions Ouvertes</label>
+                            <label class="toggle">
+                                <input type="checkbox" checked id="registration-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Paramètres de Jeu</h3>
+                        <div class="setting-item">
+                            <label>Essais Maximum</label>
+                            <input type="number" value="6" class="setting-input">
+                        </div>
+                        <div class="setting-item">
+                            <label>Temps Limite (secondes)</label>
+                            <input type="number" value="300" class="setting-input">
+                        </div>
+                        <div class="setting-item">
+                            <label>Score de Base</label>
+                            <input type="number" value="1000" class="setting-input">
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Notifications</h3>
+                        <div class="setting-item">
+                            <label>Email Notifications</label>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>Alertes Système</label>
+                            <label class="toggle">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Sécurité</h3>
+                        <button class="btn-secondary full-width">Changer Mot de Passe</button>
+                        <button class="btn-secondary full-width">Gérer Sessions</button>
+                        <button class="btn-danger full-width">Réinitialiser Base de Données</button>
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button class="btn-primary">Sauvegarder les Modifications</button>
+                    <button class="btn-secondary">Annuler</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ajouter Utilisateur</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" class="form-input" placeholder="Nom d'utilisateur">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-input" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Mot de Passe</label>
+                    <input type="password" class="form-input" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <select class="form-input">
+                        <option>Utilisateur</option>
+                        <option>Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary">Créer</button>
+                <button class="btn-secondary modal-close">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='admin_script.js') }}"></script>
+</body>
+</html>

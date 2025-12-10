@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUSMO CESI - Jeu de Mots Français</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='game_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='multiplayer_styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🎯 TUSMO CESI</h1>
+            </div>
+            <div class="header-buttons">
+                <button class="btn-icon" id="stats-btn" title="Statistiques">📊</button>
+                <button class="btn-icon" id="help-btn" title="Aide">❓</button>
+                <button class="btn-icon" id="settings-btn" title="Paramètres">⚙️</button>
+            </div>
+        </header>
+
+        <!-- Game Mode Selector -->
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="daily">
+                <span class="mode-icon">📅</span>
+                <span class="mode-text">Mot du Jour</span>
+            </button>
+            <button class="mode-btn" data-mode="infinite">
+                <span class="mode-icon">♾️</span>
+                <span class="mode-text">Mode Infini</span>
+            </button>
+            <button class="mode-btn" data-mode="1v1">
+                <span class="mode-icon">⚔️</span>
+                <span class="mode-text">1v1</span>
+            </button>
+            <button class="mode-btn" data-mode="party">
+                <span class="mode-icon">🎉</span>
+                <span class="mode-text">Party Mode</span>
+            </button>
+        </div>
+
+        <!-- Game Info -->
+        <div class="game-info">
+            <div class="info-item">
+                <span class="info-label">Essais</span>
+                <span class="info-value" id="attempts">6/6</span>
+            </div>
+            <div class="info-item" id="timer-container" style="display: none;">
+                <span class="info-label">Temps</span>
+                <span class="info-value" id="timer">00:00</span>
+            </div>
+            <div class="info-item" id="score-container" style="display: none;">
+                <span class="info-label">Score</span>
+                <span class="info-value" id="score">0</span>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div id="game-board" class="game-board"></div>
+
+        <!-- Keyboard -->
+        <div id="keyboard" class="keyboard">
+            <div class="keyboard-row">
+                <button class="key" data-key="a">A</button>
+                <button class="key" data-key="z">Z</button>
+                <button class="key" data-key="e">E</button>
+                <button class="key" data-key="r">R</button>
+                <button class="key" data-key="t">T</button>
+                <button class="key" data-key="y">Y</button>
+                <button class="key" data-key="u">U</button>
+                <button class="key" data-key="i">I</button>
+                <button class="key" data-key="o">O</button>
+                <button class="key" data-key="p">P</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key" data-key="q">Q</button>
+                <button class="key" data-key="s">S</button>
+                <button class="key" data-key="d">D</button>
+                <button class="key" data-key="f">F</button>
+                <button class="key" data-key="g">G</button>
+                <button class="key" data-key="h">H</button>
+                <button class="key" data-key="j">J</button>
+                <button class="key" data-key="k">K</button>
+                <button class="key" data-key="l">L</button>
+                <button class="key" data-key="m">M</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key key-large" data-key="Enter">ENTRER</button>
+                <button class="key" data-key="w">W</button>
+                <button class="key" data-key="x">X</button>
+                <button class="key" data-key="c">C</button>
+                <button class="key" data-key="v">V</button>
+                <button class="key" data-key="b">B</button>
+                <button class="key" data-key="n">N</button>
+                <button class="key key-large" data-key="Backspace">⌫</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 Statistiques</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="games-played">0</div>
+                        <div class="stat-label">Parties</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="win-rate">0%</div>
+                        <div class="stat-label">Victoires</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="current-streak">0</div>
+                        <div class="stat-label">Série</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="max-streak">0</div>
+                        <div class="stat-label">Meilleure Série</div>
+                    </div>
+                </div>
+
+                <h3>🏆 Classement du Jour</h3>
+                <div id="leaderboard" class="leaderboard"></div>
+
+                <div class="next-word">
+                    <p>Prochain mot dans: <span id="countdown">--:--:--</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1v1 Setup Modal -->
+    <div id="multiplayer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚔️ Mode 1v1</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="multiplayer-options">
+                    <button class="btn btn-primary" id="create-room-btn">
+                        <span class="btn-icon">🎯</span>
+                        <span>Créer une Partie</span>
+                    </button>
+                    <button class="btn btn-secondary" id="join-room-btn">
+                        <span class="btn-icon">🔗</span>
+                        <span>Rejoindre avec Code</span>
+                    </button>
+                    <button class="btn btn-secondary" id="find-player-btn">
+                        <span class="btn-icon">🔍</span>
+                        <span>Trouver un Joueur</span>
+                    </button>
+                </div>
+                
+                <div id="room-code-display" style="display: none;">
+                    <h3>Code de la Partie</h3>
+                    <div class="code-box-large">
+                        <span id="room-code-text">ABCD</span>
+                    </div>
+                    <p class="waiting-text">En attente d'un adversaire...</p>
+                    <button class="btn btn-secondary" id="cancel-room-btn">Annuler</button>
+                </div>
+                
+                <div id="join-code-input" style="display: none;">
+                    <h3>Entrez le Code</h3>
+                    <input type="text" id="join-code-field" class="code-input" maxlength="4" placeholder="ABCD">
+                    <div class="modal-actions">
+                        <button class="btn btn-primary" id="submit-code-btn">Rejoindre</button>
+                        <button class="btn btn-secondary" id="back-to-options-btn">Retour</button>
+                    </div>
+                </div>
+                
+                <div id="searching-player" style="display: none;">
+                    <div class="searching-animation">
+                        <div class="spinner"></div>
+                        <p>Recherche d'un adversaire...</p>
+                    </div>
+                    <button class="btn btn-secondary" id="cancel-search-btn">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Party Mode Setup Modal -->
+    <div id="party-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎉 Party Mode</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="party-info">
+                    <h3>Règles du Party Mode</h3>
+                    <ul class="rules-list">
+                        <li>🎯 <strong>10 mots</strong> à deviner</li>
+                        <li>⚡ Plus rapide = Plus de points</li>
+                        <li>🏆 Meilleur score total gagne</li>
+                        <li>⏱️ Chaque mot est chronométré</li>
+                    </ul>
+                </div>
+                <div class="party-options">
+                    <button class="btn btn-primary" id="start-party-solo-btn">
+                        <span class="btn-icon">👤</span>
+                        <span>Jouer Solo</span>
+                    </button>
+                    <button class="btn btn-secondary" id="start-party-multi-btn">
+                        <span class="btn-icon">👥</span>
+                        <span>Jouer en Multijoueur</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Party Progress Modal -->
+    <div id="party-progress-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🎉 Party Mode - Progression</h2>
+            </div>
+            <div class="modal-body">
+                <div class="party-stats">
+                    <div class="party-stat">
+                        <span class="party-label">Mots</span>
+                        <span class="party-value" id="party-words-count">1/10</span>
+                    </div>
+                    <div class="party-stat">
+                        <span class="party-label">Score Total</span>
+                        <span class="party-value" id="party-total-score">0</span>
+                    </div>
+                    <div class="party-stat">
+                        <span class="party-label">Temps Total</span>
+                        <span class="party-value" id="party-total-time">00:00</span>
+                    </div>
+                </div>
+                <div class="party-actions">
+                    <button class="btn btn-primary" id="next-word-btn">Mot Suivant ➡️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1v1 Game Info -->
+    <div id="multiplayer-info" class="multiplayer-info" style="display: none;">
+        <div class="player-card you">
+            <div class="player-name">Vous</div>
+            <div class="player-score" id="your-score">0</div>
+            <div class="player-status" id="your-status">En cours...</div>
+        </div>
+        <div class="vs-divider">VS</div>
+        <div class="player-card opponent">
+            <div class="player-name" id="opponent-name">Adversaire</div>
+            <div class="player-score" id="opponent-score">0</div>
+            <div class="player-status" id="opponent-status">En cours...</div>
+        </div>
+    </div>
+
+    <!-- Win/Loss Modal -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="result-title">🎉 Bravo!</h2>
+            </div>
+            <div class="modal-body">
+                <p id="result-message">Vous avez trouvé le mot!</p>
+                <div id="daily-countdown-box" class="daily-countdown-box" style="display: none;">
+                    <p class="countdown-label">⏰ Prochain mot dans:</p>
+                    <h2 class="countdown-timer" id="result-countdown">23:45:12</h2>
+                </div>
+                <div class="result-word">
+                    <span>Le mot était:</span>
+                    <h1 id="result-word-display">MAISON</h1>
+                </div>
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <span class="result-label">Essais</span>
+                        <span class="result-value" id="result-attempts">3/6</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="result-label">Temps</span>
+                        <span class="result-value" id="result-time">01:23</span>
+                    </div>
+                    <div class="result-stat">
+                        <span class="result-label">Score</span>
+                        <span class="result-value" id="result-score">850</span>
+                    </div>
+                </div>
+                <div class="result-actions">
+                    <button class="btn btn-primary" id="share-btn">📤 Partager</button>
+                    <button class="btn btn-secondary" id="new-game-btn">🔄 Nouvelle Partie</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='game.js') }}"></script>
+</body>
+</html>

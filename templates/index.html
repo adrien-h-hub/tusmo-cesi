@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TUSMO CESI - Jeu de Mots en Français</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Menu Principal -->
+        <div id="main-menu" class="screen active">
+            <div class="logo">
+                <h1>🎯 TUSMO CESI</h1>
+                <p class="subtitle">Devinez le mot mystère en français</p>
+            </div>
+            
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="startSoloGame()">
+                    <span class="btn-icon">🎮</span>
+                    <span class="btn-text">Partie Solo</span>
+                    <span class="btn-desc">Jouez à l'infini</span>
+                </button>
+                
+                <button class="btn btn-secondary" onclick="showMultiplayerMenu()">
+                    <span class="btn-icon">👥</span>
+                    <span class="btn-text">Multijoueur</span>
+                    <span class="btn-desc">1v1 ou 2v2 en ligne</span>
+                </button>
+                
+                <button class="btn btn-tertiary" onclick="showRules()">
+                    <span class="btn-icon">📖</span>
+                    <span class="btn-text">Règles du Jeu</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu Multijoueur -->
+        <div id="multiplayer-menu" class="screen">
+            <h2>Mode Multijoueur</h2>
+            
+            <div class="input-group">
+                <label for="player-name">Votre pseudo :</label>
+                <input type="text" id="player-name" placeholder="Entrez votre nom" maxlength="20">
+            </div>
+            
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="showPrivateGameMenu()">
+                    <span class="btn-icon">🔗</span>
+                    <span class="btn-text">Jouer avec un ami</span>
+                    <span class="btn-desc">Créer ou rejoindre avec un code</span>
+                </button>
+                
+                <button class="btn btn-secondary" onclick="joinMatchmaking('1v1')">
+                    <span class="btn-icon">⚔️</span>
+                    <span class="btn-text">1 vs 1 Aléatoire</span>
+                    <span class="btn-desc">Duel en ligne</span>
+                </button>
+                
+                <button class="btn btn-secondary" onclick="joinMatchmaking('2v2')">
+                    <span class="btn-icon">👥</span>
+                    <span class="btn-text">2 vs 2</span>
+                    <span class="btn-desc">Équipes de 2</span>
+                </button>
+                
+                <button class="btn btn-back" onclick="showMainMenu()">
+                    ← Retour
+                </button>
+            </div>
+        </div>
+
+        <!-- Menu Partie Privée -->
+        <div id="private-game-menu" class="screen">
+            <h2>Jouer avec un ami</h2>
+            
+            <div class="input-group">
+                <label for="private-player-name">Votre pseudo :</label>
+                <input type="text" id="private-player-name" placeholder="Entrez votre nom" maxlength="20">
+            </div>
+            
+            <div class="menu-buttons">
+                <button class="btn btn-primary" onclick="createPrivateRoom()">
+                    <span class="btn-icon">➕</span>
+                    <span class="btn-text">Créer une partie</span>
+                    <span class="btn-desc">Générer un code pour inviter</span>
+                </button>
+                
+                <div class="divider">
+                    <span>OU</span>
+                </div>
+                
+                <div class="input-group">
+                    <label for="room-code">Code de la partie :</label>
+                    <input type="text" id="room-code" placeholder="Entrez le code (ex: ABC123)" maxlength="6" style="text-transform: uppercase;">
+                </div>
+                
+                <button class="btn btn-secondary" onclick="joinPrivateRoom()">
+                    <span class="btn-icon">🚪</span>
+                    <span class="btn-text">Rejoindre la partie</span>
+                </button>
+                
+                <button class="btn btn-back" onclick="showMultiplayerMenu()">
+                    ← Retour
+                </button>
+            </div>
+        </div>
+
+        <!-- Écran Code de Partie -->
+        <div id="room-code-screen" class="screen">
+            <div class="code-display">
+                <h2>Partie créée!</h2>
+                <p class="subtitle">Partagez ce code avec votre ami</p>
+                
+                <div class="code-box">
+                    <span id="display-code">ABC123</span>
+                </div>
+                
+                <button class="btn btn-tertiary" onclick="copyCode()">
+                    <span>📋 Copier le code</span>
+                </button>
+                
+                <div class="waiting-animation">
+                    <div class="spinner"></div>
+                    <p>En attente de votre ami...</p>
+                </div>
+            </div>
+            
+            <button class="btn btn-back" onclick="cancelPrivateRoom()">Annuler</button>
+        </div>
+
+        <!-- Écran d'attente -->
+        <div id="waiting-screen" class="screen">
+            <div class="waiting-animation">
+                <div class="spinner"></div>
+                <h2 id="waiting-message">Recherche d'adversaires...</h2>
+                <p>Veuillez patienter</p>
+            </div>
+            <button class="btn btn-back" onclick="cancelMatchmaking()">Annuler</button>
+        </div>
+
+        <!-- Écran de Jeu -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="game-info">
+                    <h2 id="game-mode-title">TUSMO CESI</h2>
+                    <p id="game-mode-desc">Mode Solo</p>
+                </div>
+                <div class="game-stats">
+                    <span id="attempts-left">Essais: 6/6</span>
+                </div>
+            </div>
+
+            <div class="game-board" id="game-board">
+                <!-- Les tentatives seront ajoutées ici -->
+            </div>
+
+            <div class="keyboard-container">
+                <div class="input-container">
+                    <input type="text" id="guess-input" placeholder="Entrez votre mot..." maxlength="10" autocomplete="off">
+                    <button class="btn btn-submit" onclick="submitGuess()">Valider</button>
+                </div>
+                
+                <div class="virtual-keyboard" id="virtual-keyboard">
+                    <!-- Clavier virtuel AZERTY -->
+                </div>
+            </div>
+
+            <button class="btn btn-back" onclick="quitGame()">Quitter la partie</button>
+        </div>
+
+        <!-- Écran de Fin de Partie -->
+        <div id="game-over-screen" class="screen">
+            <div class="game-over-content">
+                <h2 id="game-over-title">Bravo!</h2>
+                <p id="game-over-message">Vous avez trouvé le mot!</p>
+                <div class="word-reveal">
+                    <span>Le mot était:</span>
+                    <h1 id="revealed-word">MAISON</h1>
+                </div>
+                
+                <div class="menu-buttons">
+                    <button class="btn btn-primary" onclick="playAgain()">
+                        <span class="btn-icon">🔄</span>
+                        Nouvelle Partie
+                    </button>
+                    <button class="btn btn-secondary" onclick="showMainMenu()">
+                        Menu Principal
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écran des Règles -->
+        <div id="rules-screen" class="screen">
+            <h2>📖 Règles du Jeu</h2>
+            <div class="rules-content">
+                <div class="rule-section">
+                    <h3>🎯 Objectif</h3>
+                    <p>Devinez le mot mystère en français en 6 essais maximum.</p>
+                </div>
+                
+                <div class="rule-section">
+                    <h3>🎨 Code Couleur</h3>
+                    <div class="color-examples">
+                        <div class="color-example">
+                            <span class="letter-box correct">A</span>
+                            <p><strong>Vert</strong> - Lettre correcte au bon endroit</p>
+                        </div>
+                        <div class="color-example">
+                            <span class="letter-box present">B</span>
+                            <p><strong>Orange</strong> - Lettre présente mais mal placée</p>
+                        </div>
+                        <div class="color-example">
+                            <span class="letter-box absent">C</span>
+                            <p><strong>Gris</strong> - Lettre absente du mot</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="rule-section">
+                    <h3>🎮 Modes de Jeu</h3>
+                    <ul>
+                        <li><strong>Solo:</strong> Jouez à l'infini, un nouveau mot à chaque partie</li>
+                        <li><strong>1v1:</strong> Affrontez un adversaire en ligne</li>
+                        <li><strong>2v2:</strong> Jouez en équipe de 2 contre 2</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button class="btn btn-back" onclick="showMainMenu()">← Retour</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='game.js') }}"></script>
+</body>
+</html>
