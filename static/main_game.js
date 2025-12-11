@@ -158,9 +158,9 @@ function showDailyCompleted(state) {
             // Color the box
             let color = "#787c7e"; // gray
             if (currentWord[i] === letter.toLowerCase()) {
-                color = "#6aaa64"; // green
+                color = "#e74c3c"; // red (correct position)
             } else if (currentWord.includes(letter.toLowerCase())) {
-                color = "#c9b458"; // yellow
+                color = "#f39c12"; // yellow (wrong position)
             }
             
             box.style.backgroundColor = color;
@@ -441,10 +441,12 @@ function shadeKeyBoard(letter, color) {
     for (const elem of buttons) {
         if (elem.textContent.toLowerCase() === letter) {
             const oldColor = elem.style.backgroundColor;
-            if (oldColor === 'rgb(16, 185, 129)' || oldColor === 'green') {
+            // Don't override red (correct position)
+            if (oldColor === 'rgb(231, 76, 60)' || oldColor === '#e74c3c') {
                 return;
             }
-            if ((oldColor === 'rgb(245, 158, 11)' || oldColor === 'yellow') && color !== 'green') {
+            // Don't override yellow with grey
+            if ((oldColor === 'rgb(243, 156, 18)' || oldColor === '#f39c12') && color === 'grey') {
                 return;
             }
             elem.style.backgroundColor = color;
@@ -566,10 +568,10 @@ function checkGuess() {
     const targetLetters = Array.from(currentWord);
     const usedPositions = new Array(wordLength).fill(false);
     
-    // Pass 1: Find all exact matches (green)
+    // Pass 1: Find all exact matches (red)
     for (let i = 0; i < wordLength; i++) {
         if (currentGuess[i] === targetLetters[i]) {
-            letterColors[i] = 'rgb(16, 185, 129)'; // green
+            letterColors[i] = '#e74c3c'; // red
             usedPositions[i] = true;
             // Save found letter for next rows
             foundLetters[i] = currentGuess[i];
@@ -586,7 +588,7 @@ function checkGuess() {
             // Check if this letter exists in target at a different position
             for (let j = 0; j < wordLength; j++) {
                 if (!usedPositions[j] && targetLetters[j] === letter) {
-                    letterColors[i] = 'rgb(245, 158, 11)'; // yellow
+                    letterColors[i] = '#f39c12'; // better yellow
                     usedPositions[j] = true;
                     foundYellow = true;
                     // Track yellow letters for hard mode
