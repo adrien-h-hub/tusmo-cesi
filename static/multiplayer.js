@@ -117,29 +117,146 @@ class MultiplayerManager {
     // Event Handlers
     handleRoomCreated(data) {
         this.roomCode = data.roomCode;
-        showRoomCodeModal(data.roomCode);
+        if (typeof showRoomCodeModal === 'function') {
+            showRoomCodeModal(data.roomCode);
+        }
     }
 
     handleRoomJoined(data) {
-        showWaitingScreen(data.players);
+        if (typeof showWaitingScreen === 'function') {
+            showWaitingScreen(data.players);
+        }
     }
 
     handlePlayerJoined(data) {
-        updatePlayerList(data.players);
+        if (typeof updatePlayerList === 'function') {
+            updatePlayerList(data.players);
+        }
         toastr.success(`${data.playerName} a rejoint la partie!`);
     }
 
     handleGameStarted(data) {
-        hideWaitingScreen();
-        startMultiplayerGame(data.word, data.players);
+        if (typeof hideWaitingScreen === 'function') {
+            hideWaitingScreen();
+        }
+        this.startMultiplayerGame(data.word, data.players);
     }
 
     handleOpponentProgress(data) {
-        updateOpponentDisplay(data);
+        this.updateOpponentDisplay(data);
     }
 
     handleGameEnded(data) {
-        showGameResults(data);
+        this.showGameResults(data);
+    }
+    
+    // Start multiplayer game
+    startMultiplayerGame(word, players) {
+        // Set global variables
+        window.currentWord = word.toLowerCase();
+        window.wordLength = word.length;
+        window.multiplayerMode = true;
+        window.opponents = players.filter(p => p.name !== this.playerName);
+        
+        // Show game screen
+        const screens = document.querySelectorAll(".screen");
+        screens.forEach(screen => screen.classList.remove("active"));
+        document.getElementById("gameScreen").classList.add("active");
+        
+        // Initialize game if functions exist
+        if (typeof initBoard === 'function') {
+            initBoard();
+        }
+        if (typeof startTimer === 'function') {
+            startTimer();
+        }
+        
+        window.gameActive = true;
+        
+        // Create opponent display
+        this.createOpponentDisplay();
+    }
+    
+    // Create opponent display
+    createOpponentDisplay() {
+        const container = document.querySelector('.game-container');
+        if (!container) return;
+        
+        let opponentDiv = document.getElementById('opponentDisplay');
+        if (!opponentDiv) {
+            opponentDiv = document.createElement('div');
+            opponentDiv.id = 'opponentDisplay';
+            opponentDiv.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                min-width: 200px;
+                z-index: 100;
+            `;
+            opponentDiv.innerHTML = `
+                <h3 style="margin: 0 0 15px 0; font-size: 1.2rem;">⚔️ Adversaires</h3>
+                <div id="opponentsList"></div>
+            `;
+            container.appendChild(opponentDiv);
+        }
+    }
+    
+    // Update opponent display
+    updateOpponentDisplay(data) {
+        const list = document.getElementById('opponentsList');
+        if (!list) return;
+        
+        const opponentData = window.opponentsData || {};
+        opponentData[data.playerName] = data;
+        window.opponentsData = opponentData;
+        
+        list.innerHTML = Object.values(opponentData).map(opp => `
+            <div style="padding: 10px; background: #f0f0f0; border-radius: 10px; margin: 5px 0;">
+                <div style="font-weight: 600;">${opp.playerName}</div>
+                <div style="font-size: 0.9rem; color: #666;">
+                    Essai ${opp.currentRow}/6
+                    ${opp.foundWord ? '✅ Trouvé!' : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Show game results
+    showGameResults(data) {
+        const winner = data.winner;
+        const results = data.results;
+        
+        const modal = document.createElement('div');
+        modal.className = 'stats-modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+            <div class="stats-content" style="text-align: center;">
+                <h2>${winner.name === this.playerName ? '🎉 Victoire!' : '😢 Défaite'}</h2>
+                <div style="margin: 30px 0;">
+                    <h3>🏆 Gagnant: ${winner.name}</h3>
+                    <p>Temps: ${Math.floor(winner.time / 60)}:${(winner.time % 60).toString().padStart(2, '0')}</p>
+                    <p>Essais: ${winner.attempts}/6</p>
+                </div>
+                <h3>📊 Classement</h3>
+                <div style="margin: 20px 0;">
+                    ${results.map((r, i) => `
+                        <div style="padding: 15px; background: ${i === 0 ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : '#f0f0f0'}; border-radius: 10px; margin: 10px 0; color: ${i === 0 ? 'white' : 'black'};">
+                            <span style="font-size: 1.5rem; font-weight: 800;">${i + 1}.</span>
+                            <span style="font-weight: 600; margin-left: 10px;">${r.name}</span>
+                            <span style="float: right;">${r.won ? `${r.attempts} essais` : 'Abandonné'}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="location.reload()" style="padding: 15px 30px; background: #667eea; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; margin-top: 20px; font-size: 1.1rem;">
+                    Retour au Menu
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
     }
 
     disconnect() {
@@ -150,147 +267,6 @@ class MultiplayerManager {
     }
 }
 
-// UI Functions
-function showRoomCodeModal(roomCode) {
-    const modal = document.createElement('div');
-    modal.className = 'stats-modal';
-    modal.innerHTML = `
-        <div class="stats-content" style="text-align: center;">
-            <h2>🎮 Salle Créée!</h2>
-            <p style="margin: 20px 0;">Partagez ce code avec votre ami:</p>
-            <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 30px; border-radius: 15px; font-size: 3rem; font-weight: 800; letter-spacing: 10px; margin: 20px 0;">
-                ${roomCode}
-            </div>
-            <button class="btn-primary" onclick="copyRoomCode('${roomCode}')" style="margin: 10px; padding: 15px 30px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer;">
-                📋 Copier le Code
-            </button>
-            <p style="margin: 20px 0; color: #666;">En attente de l'adversaire...</p>
-            <div id="playersList"></div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    window.currentRoomModal = modal;
-}
-
-function copyRoomCode(code) {
-    navigator.clipboard.writeText(code);
-    toastr.success('Code copié!');
-}
-
-function showWaitingScreen(players) {
-    updatePlayerList(players);
-}
-
-function updatePlayerList(players) {
-    const list = document.getElementById('playersList');
-    if (list) {
-        list.innerHTML = `
-            <div style="margin-top: 20px;">
-                ${players.map(p => `
-                    <div style="padding: 10px; background: #f0f0f0; border-radius: 10px; margin: 5px 0;">
-                        👤 ${p.name} ${p.ready ? '✅' : '⏳'}
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-}
-
-function hideWaitingScreen() {
-    if (window.currentRoomModal) {
-        document.body.removeChild(window.currentRoomModal);
-        window.currentRoomModal = null;
-    }
-}
-
-function startMultiplayerGame(word, players) {
-    // Initialize game with the word
-    window.currentWord = word.toLowerCase();
-    window.wordLength = word.length;
-    window.multiplayerMode = true;
-    window.opponents = players.filter(p => p.name !== window.multiplayerManager.playerName);
-    
-    // Start the game
-    showScreen('gameScreen');
-    initBoard();
-    startTimer();
-    gameActive = true;
-    
-    // Show opponent display
-    createOpponentDisplay();
-}
-
-function createOpponentDisplay() {
-    const container = document.querySelector('.game-container');
-    const opponentDiv = document.createElement('div');
-    opponentDiv.id = 'opponentDisplay';
-    opponentDiv.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        min-width: 200px;
-    `;
-    opponentDiv.innerHTML = `
-        <h3 style="margin: 0 0 15px 0; font-size: 1.2rem;">⚔️ Adversaires</h3>
-        <div id="opponentsList"></div>
-    `;
-    container.appendChild(opponentDiv);
-}
-
-function updateOpponentDisplay(data) {
-    const list = document.getElementById('opponentsList');
-    if (!list) return;
-    
-    const opponentData = window.opponentsData || {};
-    opponentData[data.playerName] = data;
-    window.opponentsData = opponentData;
-    
-    list.innerHTML = Object.values(opponentData).map(opp => `
-        <div style="padding: 10px; background: #f0f0f0; border-radius: 10px; margin: 5px 0;">
-            <div style="font-weight: 600;">${opp.playerName}</div>
-            <div style="font-size: 0.9rem; color: #666;">
-                Essai ${opp.currentRow}/6
-                ${opp.foundWord ? '✅ Trouvé!' : ''}
-            </div>
-        </div>
-    `).join('');
-}
-
-function showGameResults(data) {
-    const winner = data.winner;
-    const results = data.results;
-    
-    const modal = document.createElement('div');
-    modal.className = 'stats-modal';
-    modal.innerHTML = `
-        <div class="stats-content" style="text-align: center;">
-            <h2>${winner.name === window.multiplayerManager.playerName ? '🎉 Victoire!' : '😢 Défaite'}</h2>
-            <div style="margin: 30px 0;">
-                <h3>🏆 Gagnant: ${winner.name}</h3>
-                <p>Temps: ${Math.floor(winner.time / 60)}:${(winner.time % 60).toString().padStart(2, '0')}</p>
-                <p>Essais: ${winner.attempts}/6</p>
-            </div>
-            <h3>📊 Classement</h3>
-            <div style="margin: 20px 0;">
-                ${results.map((r, i) => `
-                    <div style="padding: 15px; background: ${i === 0 ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : '#f0f0f0'}; border-radius: 10px; margin: 10px 0; color: ${i === 0 ? 'white' : 'black'};">
-                        <span style="font-size: 1.5rem; font-weight: 800;">${i + 1}.</span>
-                        <span style="font-weight: 600; margin-left: 10px;">${r.name}</span>
-                        <span style="float: right;">${r.won ? `${r.attempts} essais` : 'Abandonné'}</span>
-                    </div>
-                `).join('')}
-            </div>
-            <button class="btn-primary" onclick="location.reload()" style="padding: 15px 30px; background: #667eea; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; margin-top: 20px;">
-                Retour au Menu
-            </button>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
 
 // Initialize
 const multiplayerManager = new MultiplayerManager();

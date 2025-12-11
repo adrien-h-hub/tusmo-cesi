@@ -20,6 +20,7 @@ let yellowLetters = []; // Track misplaced letters (yellow) for hard mode
 let hardMode = false; // Hard mode toggle
 let statsManager = new StatsManager();
 let soundManager = new SoundManager();
+let allGuesses = []; // Track all guesses for daily mode
 
 // Initialize enhancements after DOM loads
 window.addEventListener('DOMContentLoaded', () => {
@@ -89,14 +90,103 @@ function getHintLetters(word) {
 // Check if player has already played daily mode today
 function hasPlayedDailyToday() {
     const today = getDailySeed();
-    const lastPlayed = localStorage.getItem('lastDailyPlayed');
-    return lastPlayed === today;
+    const savedState = loadDailyState();
+    return savedState && savedState.completed && savedState.seed === today;
 }
 
-// Mark daily mode as played
-function markDailyAsPlayed() {
+// Save daily game state
+function saveDailyState(state) {
     const today = getDailySeed();
-    localStorage.setItem('lastDailyPlayed', today);
+    const stateToSave = {
+        ...state,
+        seed: today
+    };
+    localStorage.setItem('dailyGameState', JSON.stringify(stateToSave));
+}
+
+// Load daily game state
+function loadDailyState() {
+    const today = getDailySeed();
+    const saved = localStorage.getItem('dailyGameState');
+    if (!saved) return null;
+    
+    const state = JSON.parse(saved);
+    // Only return if it's for today
+    if (state.seed !== today) {
+        localStorage.removeItem('dailyGameState');
+        return null;
+    }
+    return state;
+}
+
+// Mark daily mode as completed
+function markDailyAsCompleted(won, attempts, guesses) {
+    saveDailyState({
+        completed: true,
+        won: won,
+        attempts: attempts,
+        guesses: guesses,
+        word: currentWord.toUpperCase()
+    });
+}
+
+// Show completed daily game
+function showDailyCompleted(state) {
+    showScreen("gameScreen");
+    document.getElementById("gameTitle").textContent = "Mot du Jour - Terminé";
+    
+    // Set the word
+    currentWord = state.word.toLowerCase();
+    wordLength = currentWord.length;
+    
+    // Recreate the board with saved guesses
+    initBoard();
+    gameActive = false;
+    
+    // Restore all guesses
+    state.guesses.forEach((guess, rowIndex) => {
+        const row = document.getElementById("board").children[rowIndex];
+        if (!row) return;
+        
+        for (let i = 0; i < guess.length; i++) {
+            const box = row.children[i];
+            if (!box) continue;
+            
+            const letter = guess[i];
+            box.textContent = letter;
+            
+            // Color the box
+            let color = "#787c7e"; // gray
+            if (currentWord[i] === letter.toLowerCase()) {
+                color = "#6aaa64"; // green
+            } else if (currentWord.includes(letter.toLowerCase())) {
+                color = "#c9b458"; // yellow
+            }
+            
+            box.style.backgroundColor = color;
+            box.style.color = 'white';
+            box.style.borderColor = color;
+        }
+    });
+    
+    // Show result message
+    setTimeout(() => {
+        if (state.won) {
+            toastr.success(`Vous avez trouvé le mot en ${state.attempts} essai${state.attempts > 1 ? 's' : ''}!`);
+        } else {
+            toastr.info(`Le mot était: ${state.word}`);
+        }
+        toastr.info("Revenez demain à midi pour un nouveau mot!");
+    }, 500);
+}
+
+// Restore in-progress daily game
+function restoreDailyState(state) {
+    // This would restore a game in progress
+    // For now, we'll just start fresh if not completed
+    initBoard();
+    startTimer();
+    gameActive = true;
 }
 
 // Get word with length preference (favor shorter words)
@@ -201,6 +291,17 @@ document.getElementById("btnBackParty").addEventListener("click", () => {
 // Start game
 function startGame(mode) {
     currentMode = mode;
+    
+    // Check if daily mode was already completed today
+    if (mode === "daily") {
+        const savedState = loadDailyState();
+        if (savedState && savedState.completed) {
+            // Show completed state instead of starting new game
+            showDailyCompleted(savedState);
+            return;
+        }
+    }
+    
     showScreen("gameScreen");
     
     if (mode === "daily") {
@@ -208,6 +309,14 @@ function startGame(mode) {
         currentWord = getDailyWord().toLowerCase();
         totalWords = 1;
         currentWordIndex = 1;
+        allGuesses = []; // Reset guesses for new daily game
+        
+        // Load saved state if exists (in progress)
+        const savedState = loadDailyState();
+        if (savedState && !savedState.completed) {
+            restoreDailyState(savedState);
+            return;
+        }
     } else if (mode === "infinite") {
         document.getElementById("gameTitle").textContent = "Mode Infini";
         // Use weighted selection for infinite mode too
@@ -447,6 +556,11 @@ function checkGuess() {
         }
     }
     
+    // Save this guess for daily mode
+    if (currentMode === "daily") {
+        allGuesses.push(guessString.toUpperCase());
+    }
+    
     // First pass: mark all correct positions (green)
     const letterColors = new Array(wordLength).fill('');
     const targetLetters = Array.from(currentWord);
@@ -524,9 +638,9 @@ function checkGuess() {
             hardMode = localStorage.getItem('hard_mode') === 'true';
             statsManager.recordWin(attempts, timeElapsed, currentMode, hardMode);
             
-            // Mark daily mode as played
+            // Mark daily mode as completed with all guesses
             if (currentMode === "daily") {
-                markDailyAsPlayed();
+                markDailyAsCompleted(true, attempts, allGuesses);
             }
             
             // Show streak badge if applicable
@@ -600,9 +714,9 @@ function checkGuess() {
             // Record loss in stats
             statsManager.recordLoss(currentMode);
             
-            // Mark daily mode as played
+            // Mark daily mode as completed (lost)
             if (currentMode === "daily") {
-                markDailyAsPlayed();
+                markDailyAsCompleted(false, 6, allGuesses);
             }
             
             setTimeout(() => {
